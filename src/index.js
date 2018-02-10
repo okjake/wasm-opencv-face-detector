@@ -14,6 +14,8 @@ export default class FaceDetector {
   * @param {number} height of image to be analysed
   */
   constructor(width, height) {
+    this.width = width;
+    this.height = height;
     this.inputMat = new cv.Mat(height, width, cv.CV_8UC4);
     this.grayMat = new cv.Mat(height, width, cv.CV_8UC1);
     this.classifier = new cv.CascadeClassifier();
@@ -35,15 +37,22 @@ export default class FaceDetector {
   
     cv.pyrDown(this.grayMat, faceMat);
     cv.pyrDown(faceMat, faceMat);
+
+    const size = faceMat.size();
+    const ratio = { 
+      x: this.width / size.width,
+      y: this.height / size.height
+    };
+
     this.classifier.detectMultiScale(faceMat, faceVec);
   
     for (let i = 0; i < faceVec.size(); i++) {
       const face = faceVec.get(i);
       faces.push({
-        x: face.x,
-        y: face.y,
-        height: face.height,
-        width: face.width
+        x: face.x * ratio.x,
+        y: face.y * ratio.y,
+        height: face.height * ratio.x,
+        width: face.width * ratio.y
       });
     }
   

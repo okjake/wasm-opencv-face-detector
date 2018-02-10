@@ -33,10 +33,6 @@ module.exports = {
         options: {
           presets: ['@babel/preset-env']
         }
-      },
-      {
-        test: /\.wasm$/,
-        loaders: 'arraybuffer-loader'
       }
     ]
   },
