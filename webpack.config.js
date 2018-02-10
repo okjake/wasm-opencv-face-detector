@@ -33,6 +33,11 @@ module.exports = {
         options: {
           presets: ['@babel/preset-env']
         }
+      },
+      {
+        test: /\.xml$/,
+        loader: 'raw-loader',
+        exclude: /node_modules/
       }
     ]
   },
