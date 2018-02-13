@@ -1,6 +1,6 @@
 import Stats from 'stats-js';
 import { shuffle } from 'lodash';
-import FaceDetector from '../../lib/wasm-opencv-face-detector.js';
+import FaceDetector, { setup } from '../../lib/wasm-opencv-face-detector.js';
 
 /**
  * A few global vars to keep things simple
@@ -42,10 +42,14 @@ function handleError(err) { console.log(err); }
 /**
  * Open the video stream
  */
-function main() {
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(setupVideo)
-    .catch(handleError);
+async function main() {
+  try {
+    await setup();
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    setupVideo(stream);
+  } catch(err) {
+    handleError(err);
+  }
 }
 
 /**

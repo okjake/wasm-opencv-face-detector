@@ -1,13 +1,33 @@
-const cv = require('opencv.js');
+const cv = require('../../opencv-wasm/lib/opencv-wasm');
 const defaultCascade = require('./haarcascade_frontalface_default.xml');
 
-cv.FS_createPreloadedFile(
-  '/',
-  'default-cascade',
-  'data:application/xml,' + defaultCascade,
-  true,
-  false
-);
+console.log('cv', cv);
+console.log('type', typeof cv.wasmBinary);
+
+let _classifier = null;
+
+export function setup() {
+  const importObj = Object.assign({}, {
+    env: cv.asmLibraryArg,
+    global: { NaN, Infinity },
+    'global.Math': Math,
+    preRun: [
+      cv.FS_createPreloadedFile(
+        '/',
+        'default-cascade',
+        'data:application/xml,' + defaultCascade,
+        true,
+        false
+      )
+    ]
+  });
+
+  return WebAssembly.instantiate(cv.wasmBinary, importObj)
+  .then(() => {
+    _classifier = new cv.CascadeClassifier();
+    _classifier.load('default-cascade');
+  }); 
+}
 
 /**
  * Object detection class
@@ -15,7 +35,6 @@ cv.FS_createPreloadedFile(
  * @param {number} height of image to be analysed
  */
 export default class Detector {
-
  /**
   * Create a Detector
   * Exposes the provided or default cascade to OpenCV
@@ -28,8 +47,6 @@ export default class Detector {
     this.height = height;
     this.inputMat = new cv.Mat(height, width, cv.CV_8UC4);
     this.grayMat = new cv.Mat(height, width, cv.CV_8UC1);
-    this.classifier = new cv.CascadeClassifier();
-    this.classifier.load('default-cascade');
   }
 
  /**
@@ -54,7 +71,7 @@ export default class Detector {
       y: this.height / size.height
     };
 
-    this.classifier.detectMultiScale(objMat, objVec);
+    _classifier && _classifier.detectMultiScale(objMat, objVec);
   
     for (let i = 0; i < objVec.size(); i++) {
       const obj = objVec.get(i);
